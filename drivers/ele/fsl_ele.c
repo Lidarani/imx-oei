@@ -138,6 +138,55 @@ static void ELE_MuRx(ele_mu_msg_t *msg, uint8_t maxLen,
 static ele_mu_msg_t s_msgMax;
 static MU_Type *s_eleMuBase = MU_ELE0;
 
+/*--------------------------------------------------------------------------*/
+/* ELE Get Info                                                             */
+/*--------------------------------------------------------------------------*/
+int ELE_GetInfo(ele_info_t *info)
+{
+    const volatile uint32_t data[sizeof(ele_info_t) / sizeof(uint32_t)];
+    uint32_t ret;
+
+    /* Fill in parameters */
+    s_msgMax.word[1] = 0U;
+    s_msgMax.word[2] = (uint32_t)&data;
+    s_msgMax.word[3] = sizeof(data);
+
+    /* Call ELE */
+    ELE_Call(&s_msgMax, ELE_GET_INFO_REQ, 4U);
+
+    ret = (s_msgMax.word[1] & 0xFF);
+
+    /* Extract data */
+    if (ret == ELE_SUCCESS_IND)
+    {
+        info->socId        = (uint16_t) (data[1] & 0x0000FFFFU);
+        info->socRev       = (uint16_t) ((data[1] >> 16U)  & 0x0000FFFFU);
+        info->lifecycle    = (uint16_t) (data[2] & 0x0000FFFFU);
+        info->sssmState    = (uint8_t)  ((data[2] >> 16U)  & 0x000000FFU);
+        info->attestApiVer = (uint8_t)  ((data[2] >> 24U)  & 0x000000FFU);
+        info->trngState    = (uint8_t)  (data[39] & 0x000000FFU);
+        info->csalState    = (uint8_t)  ((data[39] >> 8U)  & 0x000000FFU);
+        info->imemState    = (uint8_t)  ((data[39] >> 16U) & 0x000000FFU);
+
+        for (uint32_t idx = 0U; idx < 4U; idx++)
+        {
+            info->uid[idx] = data[idx + 3U];
+        }
+
+        for (uint32_t idx = 0U; idx < 8U; idx++)
+        {
+            info->shaPatch[idx] = data[idx + 7U];
+        }
+
+        for (uint32_t idx = 0U; idx < 8U; idx++)
+        {
+            info->shaFw[idx] = data[idx + 15U];
+        }
+    }
+
+    return ret;
+}
+
 #define ELE_SIGN    0x00d50000
 #define ELE_VERIFY  0x002a0000
 /*--------------------------------------------------------------------------*/

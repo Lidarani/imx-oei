@@ -134,6 +134,24 @@ typedef enum
 } ele_msg_ind_t;
 
 /*!
+ * This type defines ELE lifecycle codes.
+ */
+typedef enum
+{
+    ELE_BLANK_LC                   = 0x001U,
+    ELE_FAB_DEFAULT_LC             = 0x002U,
+    ELE_FAB_LC                     = 0x004U,
+    ELE_NXP_PROVISIONED_LC         = 0x008U,
+    ELE_OEM_OPEN_LC                = 0x010U,
+    ELE_OEM_SECURE_WORLD_CLOSED_LC = 0x020U,
+    ELE_OEM_CLOSED_LC              = 0x040U,
+    ELE_OEM_LOCKED_LC              = 0x080U,
+    ELE_OEM_FIELD_RETURN_LC        = 0x100U,
+    ELE_NXP_FIELD_RETURN_LC        = 0x200U,
+    ELE_BRICKED_LC                 = 0x400U,
+} ele_lc_t;
+
+/*!
  * This type is used to communicate ELE status codes.
  */
 typedef enum
@@ -203,6 +221,13 @@ typedef enum
 } ele_iee_inst_reg_state_t;
 
 /* Functions */
+
+/*!
+ * This function returns ELE info
+ *
+ * @param[out]    resp        pointer to ele_info_t structure
+ */
+int ELE_GetInfo(ele_info_t *resp);
 
 /*!
  * This function signs a data array of specified size

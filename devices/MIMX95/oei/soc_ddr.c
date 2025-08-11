@@ -98,9 +98,33 @@ void Ddr_Post_Init(void)
 #if defined(CONFIG_ELE)
 bool Ddr_Training_Data_Sign(uint32_t img_id)
 {
+    ele_info_t info;
     ddrphy_qb_state *qb_state;
     uint32_t size;
     int ret;
+
+    ret = ELE_GetInfo(&info);
+    if (ret != ELE_SUCCESS_IND)
+    {
+        return false;
+    }
+
+    /**
+     * Local keys may not be available in some lifecycles
+     * Avoid signing training data for lifecycles below
+     */
+    switch (info.lifecycle)
+    {
+        case ELE_BLANK_LC:
+        case ELE_FAB_DEFAULT_LC:
+        case ELE_FAB_LC:
+        case ELE_NXP_PROVISIONED_LC:
+        case ELE_OEM_FIELD_RETURN_LC:
+        case ELE_NXP_FIELD_RETURN_LC:
+            return false;
+        default:
+            break;
+    }
 
     qb_state = (ddrphy_qb_state *)(QB_STATE_SAVE_ADDR);
     size = sizeof(ddrphy_qb_state) - MAC_LENGTH * sizeof(uint32_t);
