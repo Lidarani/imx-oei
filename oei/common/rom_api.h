@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "common.h"
+#include "fsl_common.h"
 
 enum boot_device
 {
@@ -63,8 +64,8 @@ enum boot_stage_type
 #define QUERY_IVT_OFF       4
 #define QUERY_BT_STAGE      5
 #define QUERY_IMG_OFF       6
-#define ROM_API_OKAY        0xF0
-#define ROM_API_ERR_INV_PAR 0x1
+#define ROM_API_OKAY        0xF0U
+#define ROM_API_ERR_INV_PAR 0x01U
 
 #define IV_MAX_LEN        32
 #define HASH_MAX_LEN        64
