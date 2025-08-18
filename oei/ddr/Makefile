@@ -6,6 +6,11 @@ ifeq ($(TEST),1)
     OBJS  += $(OUT)/memtest.o
 endif
 
+ifeq ($(IEE),1)
+    FLAGS += -DDDR_IEE
+    OBJS  += $(OUT)/iee.o
+endif
+
 OBJS += \
 	$(OUT)/main.o \
 	$(OUT)/ddr_init.o \

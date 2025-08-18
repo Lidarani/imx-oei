@@ -15,6 +15,9 @@
 
 #include "fsl_sysctr.h"
 
+#ifdef DDR_IEE
+#include "iee.h"
+#endif
 #ifdef DDR_MEM_TEST
 #include "memtest.h"
 #endif
@@ -73,6 +76,10 @@ int oei_main(uint32_t argc, uint32_t *argv)
     BOARD_InitDebugConsole();
 #endif
 
+#ifdef DDR_IEE
+    prepare_iee();
+#endif
+
     printf("\nDDR OEI: (Build %lu, Commit %08lx, %s %s)\n\n",
         OEI_BUILD, OEI_COMMIT, OEI_DATE, OEI_TIME);
 
@@ -95,6 +102,12 @@ int oei_main(uint32_t argc, uint32_t *argv)
 
     ret = Ddrc_Init(&dram_timing, id);
 
+#ifdef DDR_IEE
+    if (ret == 0)
+    {
+        ret = enable_iee();
+    }
+#endif
 #ifdef DDR_MEM_TEST
     if (ret == 0)
     {
