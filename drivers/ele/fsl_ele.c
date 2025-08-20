@@ -248,9 +248,12 @@ static void ELE_MuTx(ele_mu_msg_t *msg)
 #if defined(DEBUG_ELE)
     printf("ELE tx: 0x%08x ", buf[0]);
 #endif
+
+    /* Get message size */
+    size = (uint32_t) msg->hdr.size;
+
     /* Send message body */
-    size = ((uint32_t) msg->hdr.size) - 1UL;
-    while (size > 0U)
+    while (size > 1U)
     {
         MU_SendMsg(s_eleMuBase, pos % 8UL, buf[pos]);
 #if defined(DEBUG_ELE)
@@ -284,16 +287,16 @@ static void ELE_MuRx(ele_mu_msg_t *msg, uint8_t maxLen,
     if ((msg->hdr.tag == ELE_MSG_TAG_RESP)
        && (msg->hdr.ver == ELE_MSG_VER))
     {
-        uint8_t size;
-        uint8_t pos = 1U;
+        uint32_t size;
+        uint32_t pos = 1U;
 
         /* Get message size */
-        size = MIN(msg->hdr.size - 1U, maxLen - 1U);
+        size = (uint32_t) MIN(msg->hdr.size, maxLen);
 
         /* Get message body */
-        while (size > 0U)
+        while (size > 1U)
         {
-            buf[pos] = MU_ReceiveMsg(s_eleMuBase, ((uint32_t) pos) % 8UL);
+            buf[pos] = MU_ReceiveMsg(s_eleMuBase, pos % 8UL);
 #if defined(DEBUG_ELE)
             printf("0x%08x ", buf[pos]);
 #endif
