@@ -92,7 +92,7 @@ int Ddrc_Config(struct dram_timing_info *dtiming, uint32_t fsp_id)
     return 0;
 }
 
-static void Ddr_PhyColdReset(void)
+static void Ddr_MixPowerUp(void)
 {
     /**
      * BIT(8) => src_ipc_ddrphy_presetn, PRESETN
@@ -116,9 +116,15 @@ static void Ddr_PhyColdReset(void)
     SRC_XSPR_DDRMIX->SLICE_SW_CTRL &= ~SRC_XSPR_SLICE_SW_CTRL_PDN_SOFT_MASK;
     /* Wait resets to be released => BIT(2) being set */
     while (!(SRC_XSPR_DDRMIX->FUNC_STAT & SRC_XSPR_FUNC_STAT_RST_STAT_MASK));
-    /* sleep for a while, just random */
+}
+
+static void Ddr_PhyColdReset(void)
+{
+    /* set RESET_N LOW, already LOW if function called after Ddr_MixPowerUp */
+    SRC_XSPR_DDRMIX->IRST_REQ_CTRL |= SRC_XSPR_IRST_REQ_CTRL_RSTR_1_IRST_1_MASK;
+    /* Reset duration is min 64 DfiClk, this time shall include 16 APBCLK below */
     SystemTimeDelay(8);
-    /* set PRESETN LOW after power-up */
+    /* set PRESETN LOW */
     SRC_XSPR_DDRMIX->IRST_REQ_CTRL |= SRC_XSPR_IRST_REQ_CTRL_RSTR_1_IRST_0_MASK;
     /* The delay below must be at least 16 APBCLK
      * APBCLK is @200MHz in waveform. Timer clock is @24MHz =>
@@ -169,10 +175,11 @@ int Ddrc_Init(struct dram_timing_info *dtiming, uint32_t img_id)
     uint32_t acg;
 #endif
 
-    /* reset ddrphy */
-    Ddr_PhyColdReset();
+    /** Power up DDRMIX, prepare resets */
+    Ddr_MixPowerUp();
 
-    /**
+    /** Start DfiClk and APBCLK
+     *
      * FSP ID must point to the last trained FSP
      * so that the proper DDRC config - for the
      * last trained FSP - is loaded. This fits
@@ -182,6 +189,9 @@ int Ddrc_Init(struct dram_timing_info *dtiming, uint32_t img_id)
     drate = dtiming->fsp_msg[fsp_id].drate;
     /* default to the last frequency point clock */
     Ddr_Phy_Init_Set_Dfi_Clk(drate, dtiming->fsp_msg[fsp_id].ssc);
+
+    /** Reset DDR PHY */
+    Ddr_PhyColdReset();
 
 #if (!defined(DDR_NO_PHY))
     /** Verify training data loaded from non-volatile memory */
