@@ -66,9 +66,16 @@ int oei_main(uint32_t argc, uint32_t *argv)
 {
     int ret = 0;
     uint32_t offset = 0, id = 0;
+#if !defined(DEBUG)
+    uint32_t ts, te, *tdiff;
+#endif
 
     if (!timer_is_enabled())
         timer_enable();
+
+#if !defined(DEBUG)
+    ts = SYSCTR_GetUsec64();
+#endif
 
     Clock_Init();
 #ifdef DEBUG
@@ -115,6 +122,13 @@ int oei_main(uint32_t argc, uint32_t *argv)
     }
 #endif
     printf("DDR OEI: done, err = %d\n", ret);
+
+#if !defined(DEBUG)
+    te = SYSCTR_GetUsec64();
+
+    tdiff = (uint32_t *) (QB_STATE_SAVE_ADDR - sizeof(*tdiff));
+    (*tdiff) = te - ts;
+#endif
 
     return ret;
 }
