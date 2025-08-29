@@ -144,10 +144,11 @@ static void ddrphy_qb_pstate_sram_restore(ddrphy_qb_state *qb_state)
 #define PUB2_xx	1
 #define PUB2_30	1
 
-int Ddr_Cfg_Phy_Qb(struct dram_timing_info *dtiming, int fsp_id)
+int Ddr_Cfg_Phy_Qb(struct dram_timing_info *dtiming, uint32_t fsp_id, uint32_t img_id)
 {
 	struct dram_fsp_msg *fsp_msg;
 	ddrphy_qb_state *qb_state;
+	bool valid;
 	int ret;
 	uint16_t *mb;
 #ifdef DEBUG
@@ -188,8 +189,23 @@ int Ddr_Cfg_Phy_Qb(struct dram_timing_info *dtiming, int fsp_id)
 	/** 3.2.5 Step F Load QuickBoot DMEM */
 	ddrphy_qb_restore(mb, fsp_msg, qb_state);
 	phy_ops.ddr_load_DMEM(mb, qb_state);
+
+	/** Verify training data loaded from non-volatile memory */
+	valid = Ddr_Training_Data_Check(img_id);
+
+	/** Wait DMA to complete FW loading */
 	phy_ops.ddr_post_load_firmware(IMEM);
 	phy_ops.ddr_post_load_firmware(DMEM);
+
+	if (!valid)
+	{
+		/**
+		 * Signal inappropriate flow context so that
+		 * the Training flow is triggered
+		 */
+		return 1;
+	}
+
 #ifdef DEBUG
 	te = SYSCTR_GetUsec64() - ts;
 	printf("DDR OEI: IMEM + DMEM load in %u us\n", te);
@@ -202,10 +218,16 @@ int Ddr_Cfg_Phy_Qb(struct dram_timing_info *dtiming, int fsp_id)
 	Dwc_Ddrphy_Apb_Wr(0xd0099, 0x1);
 	Dwc_Ddrphy_Apb_Wr(0xd0099, 0x0);
 
-	/* Wait for the quick boot firmware to complete */
+	/**
+	 * Wait for the quick boot firmware to complete
+	 * returns 0 on success,
+	 *        -1 in case of error
+	 */
 	ret = Wait_Ddr_Phy_Training_Complete();
-	if (ret)
+	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* Halt the microcontroller. */
 	Dwc_Ddrphy_Apb_Wr(0xd0099, 0x1);

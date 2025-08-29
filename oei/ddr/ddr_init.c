@@ -194,15 +194,17 @@ int Ddrc_Init(struct dram_timing_info *dtiming, uint32_t img_id)
     Ddr_PhyColdReset();
 
 #if (!defined(DDR_NO_PHY))
-    /** Verify training data loaded from non-volatile memory */
-    if (Ddr_Training_Data_Check(img_id))
+    /** Try to configure PHY in QuickBoot mode */
+    ret = Ddr_Cfg_Phy_Qb(dtiming, fsp_id, img_id);
+    if (ret < 0)
     {
-        /* Configure PHY in QuickBoot mode */
-        ret = Ddr_Cfg_Phy_Qb(dtiming, fsp_id);
-        if (ret) { return ret; }
+        /** QuckBoot flow failure, return error */
+        return ret;
     }
-    else
+    else if (ret > 0)
     {
+        /** QuickBoot flow signals inappropriate flow context, run Training flow */
+
         /* Move obtaining the Pathphase init values from SM to OEI after
            training perform this before Ddr_Phy_Qb_Save()
          */
@@ -215,6 +217,9 @@ int Ddrc_Init(struct dram_timing_info *dtiming, uint32_t img_id)
         uint32_t dbytes;
         uint16_t init = 0;
         uint32_t addr = 0;
+
+        /** Reset DDR PHY */
+        Ddr_PhyColdReset();
 
         /*
          * Start PHY initialization and training by

@@ -242,7 +242,7 @@ struct ddr_phy_ops
 
 extern struct ddr_phy_ops phy_ops;
 
-int Ddr_Cfg_Phy_Qb(struct dram_timing_info *timing_info, int fsp_id);
+int Ddr_Cfg_Phy_Qb(struct dram_timing_info *timing_info, uint32_t fsp_id, uint32_t img_id);
 void Ddr_Phy_Qb_Save(void);
 
 /**
