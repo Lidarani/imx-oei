@@ -109,11 +109,9 @@ static void ddrphy_qb_restore_lp5(MSB_DDR5_t *msb, ddrphy_qb_state *qb_state)
 
 static int ddrphy_qb_restore(uint16_t *mb, struct dram_fsp_msg *fsp_msg, ddrphy_qb_state *qb_state)
 {
-    uint32_t i;
     enum sdram_type type;
 
-    for (i = 0; i < DDRPHY_QB_MSB_SIZE; i++)
-        mb[i] = 0;
+    memset(mb, 0, (DDRPHY_QB_MSB_SIZE * sizeof(*mb)));
 
     ddrphy_prepare_mb(mb, fsp_msg);
 
