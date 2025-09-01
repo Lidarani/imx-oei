@@ -252,6 +252,26 @@ int ELE_VerifyData(const void *dataAddr, uint32_t dataSize,
                    const void *macAddr, uint32_t *resp);
 
 /*!
+ * This function triggers in non-blocking mode the signature verification
+ * for the data array of specified size
+ *
+ * @param[in]     dataAddr    pointer to data array to be verified
+ * @param[in]     dataSize    size of data array to be verified
+ * @param[out]    macAddr     pointer to the signature to be verified
+ */
+void ELE_VerifyData_Tx(const void *dataAddr, uint32_t dataSize,
+                       const void *macAddr);
+
+/*!
+ * This function reads in blocking mode the result of signature
+ * verification triggered previously in non-blocking mode using
+ * ELE_VerifyData_Tx function
+ *
+ * @param[out]    resp        pointer to response
+ */
+int ELE_VerifyData_Rx(uint32_t *resp);
+
+/*!
  * This function releases in RW mode the RAM region locked by ELE
  *
  * @param[in]     img_id   image ID for which the RAM will be released

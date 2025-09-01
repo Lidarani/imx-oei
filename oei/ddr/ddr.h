@@ -263,6 +263,13 @@ uint32_t Get_Training_Data_Offset(uint32_t *offset);
 bool Ddr_Training_Data_Sign(uint32_t img_id);
 
 /**
+ * Triggers in non-blocking mode the training data check process
+ *
+ * @return    true if check is triggered properly, false otherwise
+ */
+bool Ddr_Training_Data_Check_Init(void);
+
+/**
  * Checks if loaded training data is valid and can be used
  * for quick boot flow.
  *

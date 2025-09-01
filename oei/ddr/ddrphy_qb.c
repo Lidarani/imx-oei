@@ -159,6 +159,24 @@ int Ddr_Cfg_Phy_Qb(struct dram_timing_info *dtiming, uint32_t fsp_id, uint32_t i
 	fsp_msg = &dtiming->fsp_msg[fsp_id];
 	qb_state = (ddrphy_qb_state *)(QB_STATE_LOAD_ADDR);
 
+	/**
+	 * MSB memory is followed by QB training data memory and is locked when training data
+	 * check is triggered, therefore MSB must be restored before triggering training data
+	 * check
+	 */
+	ddrphy_qb_restore(mb, fsp_msg, qb_state);
+
+	/** Trigger non-blocking QB training data check */
+	valid = Ddr_Training_Data_Check_Init();
+	if (!valid)
+	{
+		/**
+		 * Signal inappropriate flow context so that
+		 * the Training flow is triggered
+		 */
+		return 1;
+	}
+
 	/** 3.2.2 MemReset Toggle */
 	Ddr_Phy_Delay40(fsp_msg->drate);
 	Dwc_Ddrphy_Apb_Wr(0xd0000, 0x0);
@@ -187,7 +205,6 @@ int Ddr_Cfg_Phy_Qb(struct dram_timing_info *dtiming, uint32_t fsp_id, uint32_t i
 	phy_ops.ddr_do_load_firmware(IMEM);
 
 	/** 3.2.5 Step F Load QuickBoot DMEM */
-	ddrphy_qb_restore(mb, fsp_msg, qb_state);
 	phy_ops.ddr_load_DMEM(mb, qb_state);
 
 	/** Verify training data loaded from non-volatile memory */

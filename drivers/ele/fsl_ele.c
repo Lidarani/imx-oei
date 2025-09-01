@@ -128,6 +128,9 @@ typedef union
 
 static void ELE_Call(ele_mu_msg_t *msg, ele_cmd_type_t cmd,
     uint8_t size);
+static void ELE_Call_Tx(ele_mu_msg_t *msg, ele_cmd_type_t cmd, uint8_t size);
+static void ELE_Call_Rx(ele_mu_msg_t *msg, ele_cmd_type_t cmd);
+
 static void ELE_MuTx(ele_mu_msg_t *msg);
 static void ELE_MuRx(ele_mu_msg_t *msg, uint8_t maxLen,
     ele_cmd_type_t cmd);
@@ -137,6 +140,7 @@ static void ELE_MuRx(ele_mu_msg_t *msg, uint8_t maxLen,
 // coverity[misra_c_2012_rule_19_2_violation:FALSE]
 static ele_mu_msg_t s_msgMax;
 static MU_Type *s_eleMuBase = MU_ELE0;
+static volatile bool s_eleRxInPogress = false;
 
 /*--------------------------------------------------------------------------*/
 /* ELE Get Info                                                             */
@@ -202,6 +206,37 @@ int ELE_SignData(const void *dataAddr, uint32_t dataSize,
 
     /* Call ELE */
     ELE_Call(&s_msgMax, ELE_SIGN_VERIFY_REQ, 4U);
+
+    if (resp)
+    {
+        *resp = s_msgMax.word[1];
+    }
+
+    return (s_msgMax.word[1] & 0xFF);
+}
+
+/*--------------------------------------------------------------------------*/
+/* ELE Verify Data Tx                                                       */
+/*--------------------------------------------------------------------------*/
+void ELE_VerifyData_Tx(const void *dataAddr, uint32_t dataSize,
+                       const void *macAddr)
+{
+    /* Fill in parameters */
+    s_msgMax.word[1] = (uint32_t)dataAddr;
+    s_msgMax.word[2] = (uint32_t)macAddr;
+    s_msgMax.word[3] = ELE_VERIFY | dataSize;
+
+    /* Call ELE */
+    ELE_Call_Tx(&s_msgMax, ELE_SIGN_VERIFY_REQ, 4U);
+}
+
+/*--------------------------------------------------------------------------*/
+/* ELE Verify Data Rx                                                       */
+/*--------------------------------------------------------------------------*/
+int ELE_VerifyData_Rx(uint32_t *resp)
+{
+    /* Call ELE */
+    ELE_Call_Rx(&s_msgMax, ELE_SIGN_VERIFY_REQ);
 
     if (resp)
     {
@@ -318,11 +353,17 @@ int ELE_IeeInstallRegion(uint64_t startAddr, uint64_t endAddr, uint8_t regIndex,
 }
 
 /*--------------------------------------------------------------------------*/
-/* Call ELE function                                                        */
+/* Call Tx ELE function                                                     */
 /*--------------------------------------------------------------------------*/
-// coverity[misra_c_2012_rule_19_2_violation:FALSE]
-static void ELE_Call(ele_mu_msg_t *msg, ele_cmd_type_t cmd, uint8_t size)
+static void ELE_Call_Tx(ele_mu_msg_t *msg, ele_cmd_type_t cmd, uint8_t size)
 {
+    while (s_eleRxInPogress)
+    {
+        ; /** Intentionally left empty */
+    }
+
+    s_eleRxInPogress = true;
+
     /* Setup message */
     msg->hdr.tag = ELE_MSG_TAG;
     msg->hdr.cmd = cmd;
@@ -331,10 +372,36 @@ static void ELE_Call(ele_mu_msg_t *msg, ele_cmd_type_t cmd, uint8_t size)
 
     /* Send message */
     ELE_MuTx(msg);
+}
+
+/*--------------------------------------------------------------------------*/
+/* Call Rx ELE function                                                     */
+/*--------------------------------------------------------------------------*/
+static void ELE_Call_Rx(ele_mu_msg_t *msg, ele_cmd_type_t cmd)
+{
+    while (!s_eleRxInPogress)
+    {
+        ; /** Intentionally left empty */
+    }
 
     /* Receive response */
     msg->word[1] = 0U;
     ELE_MuRx(msg, ELE_MSG_MAX_SIZE, cmd);
+
+    s_eleRxInPogress = false;
+}
+
+/*--------------------------------------------------------------------------*/
+/* Call ELE function                                                        */
+/*--------------------------------------------------------------------------*/
+// coverity[misra_c_2012_rule_19_2_violation:FALSE]
+static void ELE_Call(ele_mu_msg_t *msg, ele_cmd_type_t cmd, uint8_t size)
+{
+    /* Send message */
+    ELE_Call_Tx(msg, cmd, size);
+
+    /* Receive response */
+    ELE_Call_Rx(msg, cmd);
 }
 
 /*--------------------------------------------------------------------------*/
