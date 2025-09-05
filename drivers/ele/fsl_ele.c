@@ -242,36 +242,17 @@ int ELE_GetTRngState(ele_trng_state_t *trng, ele_rnd_ctin_state_t *rctin)
 /*--------------------------------------------------------------------------*/
 /* ELE IEE Install Region                                                   */
 /*--------------------------------------------------------------------------*/
-#define SIZE_64K    0x10000U
-#define ALIGN_SIZE  SIZE_64K
 int ELE_IeeInstallRegion(uint64_t startAddr, uint64_t endAddr, uint8_t regIndex, bool lock,
                          ele_iee_inst_reg_state_t *state)
 {
     uint32_t lockValue = (lock ? 1U : 0U) << 8U;
-    uint64_t algnStartAddr;
-    uint64_t algnEndAddr;
-
-    /**
-     * Align down to 64KB boundary the start address so that
-     * the required memory region is fully covered
-     */
-    algnStartAddr = ALIGN_DOWN(startAddr, ALIGN_SIZE);
-
-    /**
-     * Align up to 64KB boundary the end address so that
-     * the required memory region is fully covered.
-     *
-     * Substract 1 so that the address is the offset of
-     * the latest byte in the encrypted region.
-     */
-    algnEndAddr = ALIGN(endAddr, ALIGN_SIZE) - 1U;
 
     /* Fill in parameters */
     s_msgMax.word[1] = (lockValue | regIndex);
-    s_msgMax.word[2] = UINT64_H(algnStartAddr) & 0xFFU;   /** 40-bits Start Addr MSB */
-    s_msgMax.word[3] = UINT64_L(algnStartAddr);           /** 40-bits Start Addr LSB */
-    s_msgMax.word[4] = UINT64_H(algnEndAddr) & 0xFFU;     /** 40-bits End Addr MSB */
-    s_msgMax.word[5] = UINT64_L(algnEndAddr);             /** 40-bits End Addr LSB */
+    s_msgMax.word[2] = UINT64_H(startAddr) & 0xFFU;   /** 40-bits Start Addr MSB */
+    s_msgMax.word[3] = UINT64_L(startAddr);           /** 40-bits Start Addr LSB */
+    s_msgMax.word[4] = UINT64_H(endAddr) & 0xFFU;     /** 40-bits End Addr MSB */
+    s_msgMax.word[5] = UINT64_L(endAddr);             /** 40-bits End Addr LSB */
     s_msgMax.word[6] = 0U;
     s_msgMax.word[7] = 0U;
 
