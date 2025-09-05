@@ -71,8 +71,9 @@ int enable_iee(void)
             }
             else
             {
-                printf("DDR OEI: IEE enabled on 0x%08x..0x%08x\n",
-                       UINT64_L(DDR_IEE_REG_START), UINT64_L(DDR_IEE_REG_END));
+                printf("DDR OEI: IEE enabled on 0x%02x%08x..0x%02x%08x\n",
+                       UINT64_H(DDR_IEE_REG_START), UINT64_L(DDR_IEE_REG_START),
+                       UINT64_H(DDR_IEE_REG_END),   UINT64_L(DDR_IEE_REG_END));
                 ret = 0;
             }
         }
