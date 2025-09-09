@@ -6,11 +6,8 @@
 #include "fsl_ele.h"
 #include "oei.h"
 
-#define SIZE_16M            0x01000000ULL
-
-#define M7_IMG_MAX_SIZE     SIZE_16M
 #define M7_DDR_ADDR_START   0x80000000ULL
-#define M7_DDR_ADDR_END     (M7_DDR_ADDR_START + M7_IMG_MAX_SIZE)
+#define M7_DDR_ADDR_END     0x89FFFFFFULL
 
 #define DDR_IEE_REG_START   M7_DDR_ADDR_START
 #define DDR_IEE_REG_END     M7_DDR_ADDR_END
