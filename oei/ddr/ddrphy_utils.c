@@ -115,6 +115,8 @@ void Ddr_Phy_Init_Set_Dfi_Clk(unsigned int drate, bool ssc)
     case 4000:
     case 3733: /* Assume 3733 */
     case 3200:
+    case 2880:
+    case 2800:
     case 2133:
     case 1866: /* Assume 1866 */
     case 1600:
