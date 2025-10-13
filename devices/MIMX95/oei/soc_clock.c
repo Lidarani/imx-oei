@@ -58,6 +58,7 @@ struct fracpll_rate_table {
 
 struct fracpll_rate_table fracpll_tbl[] = {
 	{ .vco = 4800000000ULL, .rate = 800000000ULL },
+	{ .vco = 4200000000ULL, .rate = 700000000ULL },
 	{ .vco = 4800000000ULL, .rate = 600000000ULL },
 	{ .vco = 4800000000ULL, .rate = 200000000ULL },
 	{ .vco = 3199500000ULL, .rate = 533250000ULL },
@@ -66,7 +67,10 @@ struct fracpll_rate_table fracpll_tbl[] = {
 	{ .vco = 3200000000ULL, .rate = 400000000ULL },
 	{ .vco = 4320000000ULL, .rate = 360000000ULL },
 	{ .vco = 4200000000ULL, .rate = 350000000ULL },
+	{ .vco = 3900000000ULL, .rate = 325000000ULL },
+	{ .vco = 4800000000ULL, .rate = 300000000ULL },
 	{ .vco = 3199500000ULL, .rate = 266625000ULL },
+	{ .vco = 4200000000ULL, .rate = 262500000ULL },
 	{ .vco = 3732000000ULL, .rate = 233250000ULL },
 };
 
