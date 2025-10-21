@@ -5,7 +5,6 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "clock.h"
 #include "oei.h"
 #include "board.h"
 #include "rom_api.h"
@@ -77,11 +76,8 @@ int oei_main(uint32_t argc, uint32_t *argv)
     ts = SYSCTR_GetUsec64();
 #endif
 
-    Clock_Init();
-#ifdef DEBUG
-    BOARD_InitPins();
-    BOARD_InitDebugConsole();
-#endif
+    /* Board specific hardware initialization */
+    BOARD_InitHardware();
 
 #ifdef DDR_IEE
     prepare_iee();
