@@ -142,6 +142,7 @@ $(OUT)/$(IMG).elf : $(OBJS)
 	$(AT)$(OBJCOPY) -O binary --gap-fill 0x0 $(OUT)/$(IMG).elf $(OUT)/$(IMG).bin --strip-debug
 	$(AT)$(OBJDUMP) -D -S $(OUT)/$(IMG).elf > $(OUT)/$(IMG).dis
 	$(AT)$(SIZE) $(OUT)/$(IMG).elf
+	$(AT)$(READELF) -l $(OUT)/$(IMG).elf
 
 clean:
 	@echo "Cleaning ...."
